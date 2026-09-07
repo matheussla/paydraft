@@ -1,6 +1,6 @@
 # Paydraft
 
-Local-only invoicing application with Demo USDC on Solana devnet for payment verification.
+Local-only invoicing application with Demo USDC on Solana devnet for payment verification. Built with pnpm workspaces.
 
 ## Objective
 
@@ -111,14 +111,14 @@ All Solana operations will target **devnet** with **Demo USDC** (no real value).
 ### Prerequisites
 
 - Node.js >= 18.0.0
-- npm >= 9.0.0
+- pnpm >= 9.0.0
 
 ### Installation
 
 Install all workspace dependencies:
 
 ```bash
-npm install
+pnpm install
 ```
 
 ### Type Checking
@@ -126,7 +126,7 @@ npm install
 Run TypeScript type checking across all workspaces:
 
 ```bash
-npm run type-check
+pnpm type-check
 ```
 
 ### Building
@@ -134,13 +134,13 @@ npm run type-check
 Build the API:
 
 ```bash
-npm run build:api
+pnpm build:api
 ```
 
 Build the web frontend:
 
 ```bash
-npm run build:web
+pnpm build:web
 ```
 
 ### Development (Stub Servers)
@@ -156,7 +156,7 @@ cp .env.example .env
 Run the web dev server:
 
 ```bash
-npm run dev:web
+pnpm dev:web
 ```
 
 The web app will start at `http://localhost:5173` with a basic welcome page.
@@ -164,7 +164,7 @@ The web app will start at `http://localhost:5173` with a basic welcome page.
 Run the API dev server:
 
 ```bash
-npm run dev:api
+pnpm dev:api
 ```
 
 The API will start at `http://localhost:3001` with health check at `/health`.

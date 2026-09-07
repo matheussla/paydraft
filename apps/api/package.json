@@ -13,7 +13,7 @@
     "express": "^4.21.2",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
-    "@paydraft/shared": "*"
+    "@paydraft/shared": "workspace:*"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
