@@ -1,30 +1,27 @@
-# Scripts
+# Scripts Workspace
 
-Utility scripts for local development, database seeding, and environment management.
+Development utility scripts for local environment management, database seeding, and automation.
 
-**Note**: This is NOT an npm workspace. Scripts here are standalone executables (shell, Node.js, etc.) that operate on the monorepo.
+This is an npm workspace (`@paydraft/scripts`) containing TypeScript utility scripts.
 
 ## Structure
 
-- `setup/` - First-time setup and environment configuration
-- `seed/` - Database seeding and test data generation
-- `reset/` - Reset development environment to clean state
-- `deploy/` - Deployment and infrastructure scripts (if needed)
-
-## Usage
-
-Scripts should be executable and self-documenting. Run them directly:
-
-```bash
-./scripts/setup/init-dev.sh
-# or
-node scripts/seed/create-test-data.js
-```
+- `src/setup/` - First-time setup and environment configuration scripts
+- `src/seed/` - Database seeding and test data generation
+- `src/reset/` - Reset development environment to clean state
 
 ## Guidelines
 
-- Keep scripts simple and focused on one task
-- Add usage instructions at the top of each script
-- Use descriptive names
+- Write scripts in TypeScript for type safety and maintainability
+- Keep scripts focused on one task
+- Add usage instructions as comments at the top of each script
 - Make scripts idempotent when possible
-- Log what they're doing
+- Log what they're doing for debugging
+
+## Future Scripts
+
+- Initial database schema setup
+- Test data generation (invoices, customers)
+- Local Solana validator management
+- Demo USDC token distribution
+- Environment reset utilities
