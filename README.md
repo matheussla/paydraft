@@ -1,17 +1,19 @@
 # Paydraft
 
-Local-only invoicing application with Demo USDC on Solana devnet for payment verification. Built with pnpm workspaces.
+Local-only invoicing application with Demo USDC on a local Solana validator for payment verification. Built with pnpm workspaces.
+
+**⚠️ Local Demo Only**: Runs entirely on your machine with a local Solana validator. Demo USDC tokens are mock SPL tokens with **no monetary value**.
 
 ## Objective
 
-Create and manage invoices locally, then accept payments in Demo USDC (SPL token) on Solana devnet. The workflow:
+Create and manage invoices locally, then accept payments in Demo USDC (mock SPL token) on a local Solana validator. The workflow:
 
 1. **Create Invoice** - Generate invoice with customer details and line items
-2. **Pay** - Customer sends Demo USDC to invoice address
-3. **Verify** - Detect and verify payment on Solana devnet
+2. **Pay** - Backend demo-signs transaction with local keypairs to simulate payment
+3. **Verify** - Detect and verify payment on local Solana validator
 4. **Receipt** - Generate receipt and mark invoice as paid
 
-**Important**: Demo USDC tokens have **no monetary value**. This is for demonstration and development only on Solana devnet.
+**Important**: This is a **local demo environment only**. Demo USDC tokens are mock SPL tokens with **no monetary value**. All operations run on a local Solana validator on your machine, not on devnet or mainnet.
 
 ## Current Status
 
@@ -19,7 +21,7 @@ Create and manage invoices locally, then accept payments in Demo USDC (SPL token
 
 ### What's Built Today
 
-- ✅ Monorepo structure with npm workspaces
+- ✅ Monorepo structure with pnpm workspaces
 - ✅ React + Vite + TypeScript + Tailwind frontend (stub)
 - ✅ Express + TypeScript API with clean architecture layers (stubs)
 - ✅ Shared types package
@@ -30,7 +32,7 @@ Create and manage invoices locally, then accept payments in Demo USDC (SPL token
 
 - ❌ Invoice CRUD (MongoDB + Mongoose)
 - ❌ Customer management
-- ❌ Solana integration (SPL Token, wallet connection)
+- ❌ Local Solana validator integration (SPL Token, demo keypairs)
 - ❌ Demo USDC payment detection
 - ❌ Payment verification logic
 - ❌ PDF invoice/receipt generation
@@ -38,13 +40,13 @@ Create and manage invoices locally, then accept payments in Demo USDC (SPL token
 
 ## Architecture
 
-This is a monorepo using npm workspaces with clean architecture principles.
+This is a monorepo using pnpm workspaces with clean architecture principles.
 
 ### Project Structure
 
 ```
 paydraft/
-├── apps/                 npm workspaces
+├── apps/                 pnpm workspaces
 │   ├── web/              React + Vite + TypeScript + Tailwind
 │   │   ├── src/
 │   │   │   ├── core/     App setup and routing
@@ -58,9 +60,9 @@ paydraft/
 │       │   ├── infrastructure/ External concerns (DB, Solana RPC)
 │       │   └── interfaces/     HTTP controllers and routes
 │       └── ...
-├── packages/             npm workspaces
+├── packages/             pnpm workspaces
 │   └── shared/           Shared types, schemas, and API contracts
-├── scripts/              npm workspace (dev utility scripts)
+├── scripts/              pnpm workspace (dev utility scripts)
 │   └── src/
 │       ├── setup/        Environment setup scripts
 │       ├── seed/         Database seeding
@@ -93,18 +95,18 @@ Feature-based organization with clear boundaries:
 
 - **Frontend**: React 18, Vite 6, TypeScript 5, Tailwind CSS 3
 - **Backend**: Node.js, Express 4, TypeScript 5
-- **Tooling**: npm workspaces, TypeScript project references
+- **Tooling**: pnpm workspaces, TypeScript project references
 - **Architecture**: Clean architecture, SOLID principles, feature-based modules
 
 ### Later (Not Yet Implemented)
 
 - **Database**: MongoDB with Mongoose ODM
-- **Blockchain**: Solana Web3.js, SPL Token SDK
-- **Wallet**: Solana Wallet Adapter for browser wallets
+- **Blockchain**: Solana Web3.js, SPL Token SDK for local validator
+- **Demo Signing**: Backend demo-signing with local Solana keypairs (no browser wallet)
 - **PDF**: Invoice/receipt generation library
 - **Validation**: Zod or similar schema validation
 
-All Solana operations will target **devnet** with **Demo USDC** (no real value).
+All Solana operations will run on a **local Solana validator** with **Demo USDC** (mock SPL token, no monetary value). No browser wallets or external networks.
 
 ## Setup
 
@@ -194,14 +196,14 @@ Prefer composition and dependency injection. Services receive dependencies throu
 
 ### Local-First Architecture
 
-All data is stored locally. Operations are designed for offline-first use. Solana integration is for payment verification only, not primary data storage.
+All data is stored locally. Operations are designed for offline-first use. Solana integration runs on a local validator for payment verification only, not primary data storage. No external networks or browser wallets.
 
 ## Future Roadmap
 
 1. **Invoice Management** - CRUD operations, MongoDB persistence
 2. **Customer Management** - Store customer details locally
-3. **Solana Integration** - Connect wallet, Demo USDC detection
-4. **Payment Verification** - Verify payments on Solana devnet
+3. **Solana Integration** - Local validator setup, Demo USDC mock token, backend demo-signing
+4. **Payment Verification** - Verify payments on local Solana validator
 5. **PDF Generation** - Export invoices and receipts
 6. **Local Data Sync** - Robust local storage with backup
 
