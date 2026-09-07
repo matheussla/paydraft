@@ -4,9 +4,18 @@ import { IHealthService } from '../../domain/interfaces/IHealthService.js';
 export class HealthController {
   constructor(private readonly healthService: IHealthService) {}
 
-  getHealth(_req: Request, res: Response): void {
-    const healthStatus = this.healthService.getHealthStatus();
-    res.json(healthStatus);
+  async getHealth(_req: Request, res: Response): Promise<void> {
+    try {
+      const healthStatus = await this.healthService.getHealthStatus();
+      res.json(healthStatus);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Health check failed';
+      res.status(503).json({
+        status: 'error',
+        message,
+        timestamp: new Date().toISOString()
+      });
+    }
   }
 
   getPing(_req: Request, res: Response): void {

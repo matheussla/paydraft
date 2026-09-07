@@ -10,14 +10,15 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "express": "^4.21.2",
+    "@paydraft/shared": "workspace:*",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
-    "@paydraft/shared": "workspace:*"
+    "express": "^4.21.2",
+    "mongoose": "^9.9.5"
   },
   "devDependencies": {
-    "@types/express": "^5.0.0",
     "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
     "@types/node": "^22.10.2",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2"

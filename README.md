@@ -114,6 +114,7 @@ All Solana operations will run on a **local Solana validator** with **Demo USDC*
 
 - Node.js >= 18.0.0
 - pnpm >= 9.0.0
+- Docker and Docker Compose (for MongoDB)
 
 ### Installation
 
@@ -122,6 +123,28 @@ Install all workspace dependencies:
 ```bash
 pnpm install
 ```
+
+### MongoDB Setup
+
+Start MongoDB using Docker Compose (binds to 127.0.0.1 only):
+
+```bash
+docker compose up -d
+```
+
+Stop MongoDB:
+
+```bash
+docker compose down
+```
+
+Stop MongoDB and remove volumes:
+
+```bash
+docker compose down -v
+```
+
+MongoDB runs on `mongodb://paydraft:paydraft_dev_password@127.0.0.1:27017/paydraft?authSource=admin` (loopback only, not accessible from other machines).
 
 ### Type Checking
 
@@ -145,9 +168,7 @@ Build the web frontend:
 pnpm build:web
 ```
 
-### Development (Stub Servers)
-
-The current stubs have basic health check endpoints only.
+### Development
 
 Copy environment variables:
 
@@ -155,13 +176,11 @@ Copy environment variables:
 cp .env.example .env
 ```
 
-Run the web dev server:
+Start MongoDB:
 
 ```bash
-pnpm dev:web
+docker compose up -d
 ```
-
-The web app will start at `http://localhost:5173` with a basic welcome page.
 
 Run the API dev server:
 
@@ -171,7 +190,17 @@ pnpm dev:api
 
 The API will start at `http://localhost:3001` with health check at `/health`.
 
-**Note**: These are skeleton stubs. No invoice or payment functionality exists yet.
+Run the web dev server:
+
+```bash
+pnpm dev:web
+```
+
+The web app will start at `http://localhost:5173` with a basic welcome page.
+
+**Important**: The API requires MongoDB to be running. If MongoDB is unavailable, the API will fail to start with a clear error message. Ensure `docker compose up -d` completes successfully before running `pnpm dev:api`.
+
+**Note**: Invoice and payment functionality are not yet implemented.
 
 ## Development Guidelines
 
