@@ -1,0 +1,1 @@
+export { WelcomeFeature } from './WelcomeFeature';
