@@ -32,7 +32,7 @@ Create and manage invoices locally, then accept payments in Demo USDC (mock SPL 
 
 - ❌ Invoice CRUD (MongoDB + Mongoose)
 - ❌ Customer management
-- ❌ Local Solana validator integration (SPL Token, demo keypairs)
+- ✅ Local Solana validator integration (SPL Token, demo keypairs) - **Setup scripts available**
 - ❌ Demo USDC payment detection
 - ❌ Payment verification logic
 - ❌ PDF invoice/receipt generation
@@ -123,6 +123,61 @@ Install all workspace dependencies:
 ```bash
 pnpm install
 ```
+
+### Local Solana Validator Setup
+
+This project requires a local Solana validator for Demo USDC payments. Follow these steps:
+
+**1. Install Solana CLI** (if not already installed):
+
+```bash
+sh -c "$(curl -sSfL https://release.solana.com/stable/install)"
+```
+
+Verify installation:
+
+```bash
+solana --version
+```
+
+**2. Generate keypairs** (freelancer and client):
+
+```bash
+pnpm solana:keypairs
+```
+
+This creates `.solana/keypairs/freelancer.json` and `.solana/keypairs/client.json` (gitignored).
+
+**3. Start the local validator**:
+
+```bash
+solana-test-validator
+```
+
+Keep this running in a separate terminal. The validator runs on `http://127.0.0.1:8899`.
+
+**4. Initialize the Solana environment**:
+
+```bash
+pnpm solana:init
+```
+
+This script:
+- Airdrops SOL to freelancer and client accounts
+- Creates the Demo USDC SPL token (6 decimals)
+- Creates token accounts for both parties
+- Mints 1,000,000 Demo USDC to the client
+- Saves configuration to `.solana/config.json`
+
+**5. Check environment health** (optional):
+
+```bash
+pnpm solana:health
+```
+
+This checks if the validator is running and the Demo USDC mint exists. If the validator is reset, you'll see a warning and need to run `pnpm solana:init` again.
+
+**⚠️ Important**: Demo USDC tokens are mock SPL tokens with **no monetary value**. All operations run on your local validator.
 
 ### MongoDB Setup
 
