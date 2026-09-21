@@ -1,10 +1,18 @@
-import { WelcomeFeature } from '../features/welcome/WelcomeFeature';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Layout } from '../shared/components';
+import { DashboardPage } from '../features/dashboard';
+import { InvoicesPage } from '../features/invoices';
 
 function App() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <WelcomeFeature />
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          <Route index element={<DashboardPage />} />
+          <Route path="invoices" element={<InvoicesPage />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 }
 
