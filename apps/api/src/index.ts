@@ -1,10 +1,11 @@
 import { ExpressServer } from './infrastructure/server/index.js';
 import { config } from './infrastructure/config/environment.js';
-import { HealthService, InvoiceService, PaymentService, ReconciliationService } from './application/services/index.js';
+import { HealthService, InvoiceService, PaymentService, ReconciliationService, ReceiptService } from './application/services/index.js';
 import { HealthController } from './interfaces/controllers/HealthController.js';
 import { InvoiceController } from './interfaces/controllers/InvoiceController.js';
 import { PaymentController } from './interfaces/controllers/PaymentController.js';
-import { createHealthRoutes, createInvoiceRoutes, createPaymentRoutes } from './interfaces/routes/index.js';
+import { ReceiptController } from './interfaces/controllers/ReceiptController.js';
+import { createHealthRoutes, createInvoiceRoutes, createPaymentRoutes, createReceiptRoutes } from './interfaces/routes/index.js';
 import { MongoConnection } from './infrastructure/database/MongoConnection.js';
 import { MongoInvoiceRepository, MongoPaymentRepository } from './infrastructure/repositories/index.js';
 import { SolanaPaymentService } from './infrastructure/blockchain/SolanaPaymentService.js';
@@ -31,6 +32,9 @@ async function bootstrap() {
     const paymentService = new PaymentService(paymentRepository, invoiceRepository, solanaPaymentService);
     const paymentController = new PaymentController(paymentService);
 
+    const receiptService = new ReceiptService(invoiceRepository, paymentRepository);
+    const receiptController = new ReceiptController(receiptService);
+
     const reconciliationService = new ReconciliationService(
       paymentRepository,
       invoiceRepository,
@@ -42,9 +46,10 @@ async function bootstrap() {
     const healthRoutes = createHealthRoutes(healthController);
     const invoiceRoutes = createInvoiceRoutes(invoiceController);
     const paymentRoutes = createPaymentRoutes(paymentController);
+    const receiptRoutes = createReceiptRoutes(receiptController);
 
     const server = new ExpressServer();
-    server.registerRoutes([healthRoutes, invoiceRoutes, paymentRoutes]);
+    server.registerRoutes([healthRoutes, invoiceRoutes, paymentRoutes, receiptRoutes]);
     server.start(config.api.port, config.api.host);
 
     process.on('SIGTERM', () => {
