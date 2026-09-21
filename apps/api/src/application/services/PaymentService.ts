@@ -41,9 +41,21 @@ export class PaymentService implements IPaymentService {
     const paymentResult = await this.solanaPaymentService.createPayment({
       recipientAddress: invoice.freelancerWalletAddress,
       amount: invoice.total,
-      mintAddress: solanaConfig.mintAddress,
+      mintAddress: solanaConfig.demoUsdcMint,
       reference: invoice.paymentId || invoiceId,
     });
+
+    const verification = await this.solanaPaymentService.verifyPayment(
+      paymentResult.signature,
+      invoice.freelancerWalletAddress,
+      invoice.total,
+      solanaConfig.demoUsdcMint
+    );
+
+    if (!verification.valid) {
+      console.error('Payment verification failed:', verification.mismatch);
+      throw new Error('Payment mismatch detected');
+    }
 
     const payment = await this.paymentRepository.create({
       invoiceId,

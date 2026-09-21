@@ -10,6 +10,7 @@ import { MongoConnection } from './infrastructure/database/MongoConnection.js';
 import { MongoInvoiceRepository, MongoPaymentRepository } from './infrastructure/repositories/index.js';
 import { SolanaPaymentService } from './infrastructure/blockchain/SolanaPaymentService.js';
 import { resolve } from 'path';
+import { readFileSync, existsSync } from 'fs';
 
 async function bootstrap() {
   try {
@@ -23,11 +24,19 @@ async function bootstrap() {
     const invoiceService = new InvoiceService(invoiceRepository);
     const invoiceController = new InvoiceController(invoiceService);
 
+    const solanaConfigPath = resolve(process.cwd(), '.solana', 'config.json');
+    let rpcUrl = 'http://127.0.0.1:8899';
+    
+    if (existsSync(solanaConfigPath)) {
+      const solanaConfig = JSON.parse(readFileSync(solanaConfigPath, 'utf-8'));
+      rpcUrl = solanaConfig.cluster || rpcUrl;
+    }
+
     const paymentRepository = new MongoPaymentRepository();
     const solanaPaymentService = new SolanaPaymentService({
-      rpcUrl: process.env.SOLANA_RPC_URL || 'http://127.0.0.1:8899',
+      rpcUrl,
       clientKeypairPath: resolve(process.cwd(), '.solana', 'keypairs', 'client.json'),
-      solanaConfigPath: resolve(process.cwd(), '.solana', 'config.json'),
+      solanaConfigPath,
     });
     const paymentService = new PaymentService(paymentRepository, invoiceRepository, solanaPaymentService);
     const paymentController = new PaymentController(paymentService);

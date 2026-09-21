@@ -30,6 +30,8 @@ export class PaymentController {
         res.status(409).json({ error: createApiError('IDEMPOTENT_REPLAY', message) });
       } else if (message.includes('in flight')) {
         res.status(409).json({ error: createApiError('PAYMENT_IN_FLIGHT', message) });
+      } else if (message.includes('mismatch')) {
+        res.status(409).json({ error: createApiError('PAYMENT_MISMATCH', message) });
       } else {
         res.status(500).json({ error: createApiError('INTERNAL_SERVER_ERROR', message) });
       }

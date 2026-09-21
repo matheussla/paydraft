@@ -1,5 +1,5 @@
 import { Connection, Keypair, PublicKey, Transaction, sendAndConfirmTransaction } from '@solana/web3.js';
-import { getAssociatedTokenAddress, createTransferInstruction } from '@solana/spl-token';
+import { getAssociatedTokenAddress, createTransferInstruction, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 
 export interface IDemoSignerConfig {
   rpcUrl: string;
@@ -17,6 +17,21 @@ export interface IPaymentRequest {
 export interface IPaymentResult {
   signature: string;
   blockTime: number;
+}
+
+export interface IPaymentVerification {
+  valid: boolean;
+  details?: {
+    mint: string;
+    recipient: string;
+    amount: string;
+    from: string;
+  };
+  mismatch?: {
+    mint?: boolean;
+    recipient?: boolean;
+    amount?: boolean;
+  };
 }
 
 export class SolanaPaymentService {
@@ -84,7 +99,12 @@ export class SolanaPaymentService {
     };
   }
 
-  async verifyPayment(signature: string, _expectedRecipient: string, _expectedAmount: string, _expectedMint: string): Promise<boolean> {
+  async verifyPayment(
+    signature: string,
+    expectedRecipient: string,
+    expectedAmount: string,
+    expectedMint: string
+  ): Promise<IPaymentVerification> {
     try {
       const tx = await this.connection.getTransaction(signature, {
         commitment: 'confirmed',
@@ -92,17 +112,90 @@ export class SolanaPaymentService {
       });
 
       if (!tx || !tx.meta) {
-        return false;
+        return { valid: false };
       }
 
       if (tx.meta.err) {
-        return false;
+        return { valid: false };
       }
 
-      return true;
+      const message = tx.transaction.message;
+      const accountKeys = message.getAccountKeys();
+      const instructions = message.compiledInstructions;
+      
+      for (const instruction of instructions) {
+        const programId = accountKeys.get(instruction.programIdIndex);
+        
+        if (programId && programId.equals(TOKEN_PROGRAM_ID)) {
+          const accounts = instruction.accountKeyIndexes.map((idx) => 
+            accountKeys.get(idx)
+          );
+
+          if (accounts.length >= 3 && accounts[0] && accounts[1] && accounts[2]) {
+            const fromTokenAccount = accounts[0];
+            const toTokenAccount = accounts[1];
+
+            const expectedRecipientPubkey = new PublicKey(expectedRecipient);
+            const expectedMintPubkey = new PublicKey(expectedMint);
+
+            const expectedToTokenAccount = await getAssociatedTokenAddress(
+              expectedMintPubkey,
+              expectedRecipientPubkey
+            );
+
+            const clientKeypair = await this.loadClientKeypair();
+            const expectedFromTokenAccount = await getAssociatedTokenAddress(
+              expectedMintPubkey,
+              clientKeypair.publicKey
+            );
+
+            const mismatch: { mint?: boolean; recipient?: boolean; amount?: boolean } = {};
+            
+            const recipientMatch = toTokenAccount.equals(expectedToTokenAccount);
+            const fromMatch = fromTokenAccount.equals(expectedFromTokenAccount);
+
+            if (!recipientMatch) {
+              mismatch.recipient = true;
+            }
+            
+            if (!fromMatch) {
+              mismatch.mint = true;
+            }
+
+            const instructionData = Buffer.from(instruction.data);
+            if (instructionData.length >= 9) {
+              const instructionType = instructionData[0];
+              
+              if (instructionType === 3) {
+                const amount = instructionData.readBigUInt64LE(1);
+                const amountStr = amount.toString();
+                
+                if (amountStr !== expectedAmount) {
+                  mismatch.amount = true;
+                }
+
+                const details = {
+                  mint: expectedMint,
+                  recipient: toTokenAccount.toBase58(),
+                  amount: amountStr,
+                  from: fromTokenAccount.toBase58(),
+                };
+
+                if (Object.keys(mismatch).length > 0) {
+                  return { valid: false, details, mismatch };
+                }
+
+                return { valid: true, details };
+              }
+            }
+          }
+        }
+      }
+
+      return { valid: false };
     } catch (error) {
       console.error('Payment verification error:', error);
-      return false;
+      return { valid: false };
     }
   }
 
