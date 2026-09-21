@@ -69,9 +69,17 @@ export class MongoInvoiceRepository implements IInvoiceRepository {
       return null;
     }
 
+    const isStatusOnlyUpdate = data.status !== undefined && 
+      data.clientName === undefined &&
+      data.clientEmail === undefined &&
+      data.clientWalletAddress === undefined &&
+      data.dueDate === undefined &&
+      data.notes === undefined &&
+      data.lineItems === undefined;
+
     if (invoice.status === 'unpaid' || invoice.status === 'paid') {
-      if (data.status !== undefined && Object.keys(data).length === 1) {
-        invoice.status = data.status;
+      if (isStatusOnlyUpdate) {
+        invoice.status = data.status!;
         await invoice.save();
         return invoice.toJSON() as unknown as IInvoice;
       }
