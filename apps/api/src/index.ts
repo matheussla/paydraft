@@ -1,6 +1,6 @@
 import { ExpressServer } from './infrastructure/server/index.js';
 import { config } from './infrastructure/config/environment.js';
-import { HealthService, InvoiceService, PaymentService } from './application/services/index.js';
+import { HealthService, InvoiceService, PaymentService, ReconciliationService } from './application/services/index.js';
 import { HealthController } from './interfaces/controllers/HealthController.js';
 import { InvoiceController } from './interfaces/controllers/InvoiceController.js';
 import { PaymentController } from './interfaces/controllers/PaymentController.js';
@@ -31,6 +31,14 @@ async function bootstrap() {
     const paymentService = new PaymentService(paymentRepository, invoiceRepository, solanaPaymentService);
     const paymentController = new PaymentController(paymentService);
 
+    const reconciliationService = new ReconciliationService(
+      paymentRepository,
+      invoiceRepository,
+      solanaPaymentService
+    );
+    const reconciliationIntervalMs = parseInt(process.env.RECONCILIATION_INTERVAL_MS || '30000', 10);
+    reconciliationService.startReconciliation(reconciliationIntervalMs);
+
     const healthRoutes = createHealthRoutes(healthController);
     const invoiceRoutes = createInvoiceRoutes(invoiceController);
     const paymentRoutes = createPaymentRoutes(paymentController);
@@ -38,6 +46,18 @@ async function bootstrap() {
     const server = new ExpressServer();
     server.registerRoutes([healthRoutes, invoiceRoutes, paymentRoutes]);
     server.start(config.api.port, config.api.host);
+
+    process.on('SIGTERM', () => {
+      console.log('SIGTERM received, shutting down gracefully...');
+      reconciliationService.stopReconciliation();
+      process.exit(0);
+    });
+
+    process.on('SIGINT', () => {
+      console.log('SIGINT received, shutting down gracefully...');
+      reconciliationService.stopReconciliation();
+      process.exit(0);
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     console.error('Failed to start application:', message);
