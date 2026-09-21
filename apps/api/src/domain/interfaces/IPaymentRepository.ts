@@ -7,5 +7,6 @@ export interface IPaymentRepository {
   findByTransactionSignature(signature: string): Promise<IPayment | null>;
   updateStatus(id: string, status: 'pending' | 'confirmed' | 'failed'): Promise<IPayment | null>;
   updateConfirmation(id: string, blockTime: number, confirmations: number): Promise<IPayment | null>;
+  updateWithSignature(id: string, signature: string, blockTime: number, confirmations: number): Promise<IPayment | null>;
   findPendingPayments(): Promise<IPayment[]>;
 }

@@ -50,6 +50,15 @@ export class MongoPaymentRepository implements IPaymentRepository {
     return payment ? (payment.toJSON() as unknown as IPayment) : null;
   }
 
+  async updateWithSignature(id: string, signature: string, blockTime: number, confirmations: number): Promise<IPayment | null> {
+    const payment = await PaymentModel.findByIdAndUpdate(
+      id,
+      { transactionSignature: signature, blockTime, confirmations, status: 'confirmed' },
+      { new: true }
+    );
+    return payment ? (payment.toJSON() as unknown as IPayment) : null;
+  }
+
   async findPendingPayments(): Promise<IPayment[]> {
     const payments = await PaymentModel.find({ status: 'pending' });
     return payments.map(p => p.toJSON() as unknown as IPayment);
