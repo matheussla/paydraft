@@ -10,6 +10,8 @@
     "build:api": "pnpm --filter @paydraft/api build",
     "type-check": "pnpm -r --if-present type-check",
     "lint": "pnpm -r --if-present lint",
+    "test": "pnpm --filter @paydraft/api test",
+    "test:watch": "pnpm --filter @paydraft/api test:watch",
     "solana:keypairs": "pnpm --filter @paydraft/scripts solana:keypairs",
     "solana:init": "pnpm --filter @paydraft/scripts solana:init",
     "solana:health": "pnpm --filter @paydraft/scripts solana:health",
