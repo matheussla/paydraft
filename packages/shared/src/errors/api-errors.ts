@@ -8,7 +8,11 @@ export type ApiErrorCode =
   | 'FORBIDDEN'
   | 'INTERNAL_SERVER_ERROR'
   | 'BAD_REQUEST'
-  | 'SERVICE_UNAVAILABLE';
+  | 'SERVICE_UNAVAILABLE'
+  | 'PAYMENT_IN_FLIGHT'
+  | 'PAYMENT_MISMATCH'
+  | 'IDEMPOTENT_REPLAY'
+  | 'STALE_CHAIN_CONFIG';
 
 export interface IApiError {
   code: ApiErrorCode;

@@ -2,7 +2,7 @@ export type InvoiceStatus = 'draft' | 'unpaid' | 'pending' | 'paid' | 'overdue';
 
 export interface ILineItem {
   description: string;
-  quantity: string;
+  quantity: number;
   unitPrice: string;
   amount: string;
 }
@@ -24,6 +24,7 @@ export interface IInvoice {
   dueDate: string;
   issuedDate: string;
   notes?: string;
+  paymentId?: string;
   createdAt: Date;
   updatedAt: Date;
 }

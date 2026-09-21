@@ -4,7 +4,7 @@ export const invoiceStatusSchema = z.enum(['draft', 'unpaid', 'pending', 'paid',
 
 export const lineItemSchema = z.object({
   description: z.string().min(1, 'Description is required'),
-  quantity: z.string().regex(/^\d+$/, 'Quantity must be a positive integer'),
+  quantity: z.number().int().positive('Quantity must be a positive integer'),
   unitPrice: z.string().regex(/^\d+$/, 'Unit price must be a non-negative integer'),
   amount: z.string().regex(/^\d+$/, 'Amount must be a non-negative integer'),
 });
@@ -49,6 +49,7 @@ export const invoiceSchema = z.object({
   dueDate: z.string(),
   issuedDate: z.string(),
   notes: z.string().optional(),
+  paymentId: z.string().optional(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });

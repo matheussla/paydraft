@@ -10,7 +10,10 @@ export class ExpressServer {
   }
 
   private setupMiddleware(): void {
-    this.app.use(cors());
+    this.app.use(cors({
+      origin: ['http://localhost:5173', 'http://localhost:3001', 'http://127.0.0.1:5173', 'http://127.0.0.1:3001'],
+      credentials: true,
+    }));
     this.app.use(express.json());
   }
 
