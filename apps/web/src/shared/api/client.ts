@@ -37,8 +37,31 @@ async function fetchApi<T>(
   return response.json();
 }
 
+async function fetchHtml(endpoint: string): Promise<string> {
+  const url = `${API_BASE_URL}${endpoint}`;
+  
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Accept': 'text/html',
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.text().catch(() => '');
+    throw new ApiError(
+      errorData || `API request failed: ${response.statusText}`,
+      response.status
+    );
+  }
+
+  return response.text();
+}
+
 export const apiClient = {
   get: <T>(endpoint: string) => fetchApi<T>(endpoint, { method: 'GET' }),
+  
+  getHtml: (endpoint: string) => fetchHtml(endpoint),
   
   post: <T>(endpoint: string, data?: unknown) =>
     fetchApi<T>(endpoint, {

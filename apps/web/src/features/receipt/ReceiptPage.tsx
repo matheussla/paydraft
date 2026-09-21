@@ -20,7 +20,7 @@ export const ReceiptPage: React.FC = () => {
         setLoading(true);
         setError(null);
         
-        const html = await apiClient.get<string>(`/api/receipts/${invoiceId}`);
+        const html = await apiClient.getHtml(`/api/receipts/${invoiceId}`);
         setReceiptHTML(html);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load receipt');
