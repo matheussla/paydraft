@@ -115,6 +115,7 @@ All Solana operations will run on a **local Solana validator** with **Demo USDC*
 - Node.js >= 18.0.0
 - pnpm >= 9.0.0
 - Docker and Docker Compose (for MongoDB)
+- Solana CLI (for local validator)
 
 ### Installation
 
@@ -123,6 +124,99 @@ Install all workspace dependencies:
 ```bash
 pnpm install
 ```
+
+### Infrastructure Setup
+
+This application requires MongoDB and a local Solana validator to run.
+
+**1. Start MongoDB:**
+
+```bash
+docker compose up -d
+```
+
+MongoDB will be available at `127.0.0.1:27017` (loopback only).
+
+**2. Start local Solana validator** (in a separate terminal):
+
+```bash
+solana-test-validator
+```
+
+Keep this running. The validator runs on `http://127.0.0.1:8899`.
+
+**3. Generate Solana keypairs:**
+
+```bash
+pnpm solana:keypairs
+```
+
+This creates `.solana/keypairs/freelancer.json` and `.solana/keypairs/client.json` (gitignored).
+
+**4. Initialize Solana environment:**
+
+```bash
+pnpm solana:init
+```
+
+This script:
+- Airdrops SOL to freelancer and client accounts
+- Creates the Demo USDC SPL token (6 decimals)
+- Creates token accounts for both parties
+- Mints 1,000,000 Demo USDC to the client
+- Saves configuration to `.solana/config.json`
+
+**5. Check infrastructure readiness:**
+
+```bash
+pnpm setup
+```
+
+This validates that MongoDB (loopback), local Solana validator, and Solana config are ready.
+
+**6. Seed the database with sample data:**
+
+```bash
+pnpm seed
+```
+
+This creates an unpaid sample invoice totaling **800 Demo USDC** (integer unit: 800000000) for local testing.
+
+**Note**: If you need to start fresh, run `pnpm reset` to clear the database and re-seed.
+
+### Development Commands
+
+**Check infrastructure:**
+
+```bash
+pnpm setup
+```
+
+Verifies MongoDB connection, Solana validator, and config.
+
+**Seed database:**
+
+```bash
+pnpm seed
+```
+
+Creates sample unpaid invoice (800 Demo USDC).
+
+**Reset database:**
+
+```bash
+pnpm reset
+```
+
+Drops all MongoDB collections and re-seeds with sample data. Safe to run multiple times.
+
+**Check Solana health:**
+
+```bash
+pnpm solana:health
+```
+
+Validates local validator and Demo USDC mint.
 
 ### Local Solana Validator Setup
 
@@ -211,51 +305,44 @@ pnpm type-check
 
 ### Building
 
-Build the API:
+Build all packages:
 
 ```bash
 pnpm build:api
-```
-
-Build the web frontend:
-
-```bash
 pnpm build:web
 ```
 
-### Development
+### Running the Application
 
-Copy environment variables:
-
-```bash
-cp .env.example .env
-```
-
-Start MongoDB:
+**1. Ensure infrastructure is ready:**
 
 ```bash
-docker compose up -d
+pnpm setup
 ```
 
-Run the API dev server:
+This checks MongoDB, Solana validator, and configuration.
+
+**2. Start the API server:**
 
 ```bash
 pnpm dev:api
 ```
 
-The API will start at `http://localhost:3001` with health check at `/health`.
+The API starts at `http://localhost:3001` with health check at `/health`.
 
-Run the web dev server:
+**3. Start the web frontend** (in a new terminal):
 
 ```bash
 pnpm dev:web
 ```
 
-The web app will start at `http://localhost:5173` with a basic welcome page.
+The web app starts at `http://localhost:5173`.
 
-**Important**: The API requires MongoDB to be running. If MongoDB is unavailable, the API will fail to start with a clear error message. Ensure `docker compose up -d` completes successfully before running `pnpm dev:api`.
+**4. Open the sample invoice:**
 
-**Note**: Invoice and payment functionality are not yet implemented.
+After running `pnpm seed`, you'll see a payment URL in the output. Open it in your browser to test the payment flow.
+
+**Note**: Keep MongoDB and the Solana validator running while developing.
 
 ## Development Guidelines
 

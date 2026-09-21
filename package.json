@@ -12,7 +12,10 @@
     "lint": "pnpm -r --if-present lint",
     "solana:keypairs": "pnpm --filter @paydraft/scripts solana:keypairs",
     "solana:init": "pnpm --filter @paydraft/scripts solana:init",
-    "solana:health": "pnpm --filter @paydraft/scripts solana:health"
+    "solana:health": "pnpm --filter @paydraft/scripts solana:health",
+    "setup": "pnpm --filter @paydraft/scripts setup",
+    "seed": "pnpm --filter @paydraft/scripts seed",
+    "reset": "pnpm --filter @paydraft/scripts reset"
   },
   "devDependencies": {
     "typescript": "^5.7.2"

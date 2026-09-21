@@ -7,11 +7,16 @@
     "type-check": "tsc --noEmit",
     "solana:keypairs": "tsx src/setup/generateKeypairs.ts",
     "solana:init": "tsx src/setup/initSolana.ts",
-    "solana:health": "tsx src/setup/checkSolanaHealth.ts"
+    "solana:health": "tsx src/setup/checkSolanaHealth.ts",
+    "setup": "tsx src/setup/checkInfrastructure.ts",
+    "seed": "tsx src/seed/seedDatabase.ts",
+    "reset": "tsx src/reset/resetDatabase.ts"
   },
   "dependencies": {
     "@solana/spl-token": "^0.4.15",
-    "@solana/web3.js": "^1.99.0"
+    "@solana/web3.js": "^1.99.0",
+    "dotenv": "^16.4.7",
+    "mongoose": "^9.9.5"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
