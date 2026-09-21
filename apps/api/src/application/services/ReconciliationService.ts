@@ -13,13 +13,14 @@ export class ReconciliationService implements IReconciliationService {
     private readonly solanaPaymentService: SolanaPaymentService
   ) {}
 
-  async reconcilePendingPayments(): Promise<void> {
+  async reconcilePendingPayments(): Promise<number> {
     if (this.isReconciling) {
       console.log('Reconciliation already in progress, skipping...');
-      return;
+      return 0;
     }
 
     this.isReconciling = true;
+    let reconciledCount = 0;
 
     try {
       const pendingPayments = await this.paymentRepository.findPendingPayments();
@@ -47,6 +48,7 @@ export class ReconciliationService implements IReconciliationService {
             await this.invoiceRepository.update(payment.invoiceId, { status: 'paid' });
 
             console.log(`Payment ${payment.id} confirmed for invoice ${payment.invoiceId}`);
+            reconciledCount++;
           } else {
             console.log(`Payment ${payment.id} still pending (${confirmationStatus.confirmations} confirmations)`);
           }
@@ -57,9 +59,11 @@ export class ReconciliationService implements IReconciliationService {
       }
 
       console.log('Reconciliation complete');
+      return reconciledCount;
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
       console.error('Error during reconciliation:', message);
+      return reconciledCount;
     } finally {
       this.isReconciling = false;
     }

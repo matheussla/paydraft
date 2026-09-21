@@ -1,5 +1,5 @@
 export interface IReconciliationService {
-  reconcilePendingPayments(): Promise<void>;
+  reconcilePendingPayments(): Promise<number>;
   startReconciliation(intervalMs: number): void;
   stopReconciliation(): void;
 }
