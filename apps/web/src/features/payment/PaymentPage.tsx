@@ -1,11 +1,12 @@
 import React from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import type { IInvoice, IPayment } from '@paydraft/shared';
 import { invoicesApi, paymentsApi, ApiError } from '../../shared/api';
 import { formatUSDC, formatDate, formatDateTime } from '../../shared/utils';
 
 export const PaymentPage: React.FC = () => {
   const { paymentId } = useParams<{ paymentId: string }>();
+  const navigate = useNavigate();
   const [invoice, setInvoice] = React.useState<IInvoice | null>(null);
   const [payment, setPayment] = React.useState<IPayment | null>(null);
   const [loading, setLoading] = React.useState(true);
@@ -49,6 +50,14 @@ export const PaymentPage: React.FC = () => {
   React.useEffect(() => {
     fetchData();
   }, [paymentId]);
+
+  React.useEffect(() => {
+    if (invoice?.status === 'paid' && !paying) {
+      setTimeout(() => {
+        navigate(`/receipts/${invoice.id}`);
+      }, 2000);
+    }
+  }, [invoice?.status, invoice?.id, navigate, paying]);
 
   const handlePay = async () => {
     if (!invoice) return;
@@ -309,8 +318,17 @@ export const PaymentPage: React.FC = () => {
                 <p className="text-gray-600">Payment is being processed...</p>
               </div>
             ) : isPaid ? (
-              <div className="bg-gray-100 text-center py-4 rounded-lg">
-                <p className="text-gray-600">This invoice has been paid</p>
+              <div className="space-y-4">
+                <div className="bg-gray-100 text-center py-4 rounded-lg">
+                  <p className="text-gray-600">This invoice has been paid</p>
+                  <p className="text-sm text-gray-500 mt-2">Redirecting to receipt...</p>
+                </div>
+                <Link
+                  to={`/receipts/${invoice.id}`}
+                  className="block w-full text-center px-6 py-4 border border-solana-purple text-lg font-medium rounded-lg text-solana-purple hover:bg-solana-purple hover:text-white transition-all"
+                >
+                  View Receipt
+                </Link>
               </div>
             ) : (
               <div className="bg-gray-100 text-center py-4 rounded-lg">

@@ -8,6 +8,7 @@ import {
   InvoiceDetailPage 
 } from '../features/invoices';
 import { PaymentPage } from '../features/payment';
+import { ReceiptPage } from '../features/receipt';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
           <Route path="invoices/:id" element={<InvoiceDetailPage />} />
           <Route path="invoices/:id/edit" element={<EditInvoicePage />} />
           <Route path="pay/:paymentId" element={<PaymentPage />} />
+          <Route path="receipts/:invoiceId" element={<ReceiptPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
