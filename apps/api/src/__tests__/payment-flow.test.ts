@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'vitest';
 import mongoose from 'mongoose';
 import { Connection, PublicKey } from '@solana/web3.js';
 import { getAccount } from '@solana/spl-token';
@@ -50,13 +50,6 @@ describe('Payment Flow (against local validator)', () => {
 
     await mongoose.connect(MONGODB_URL);
 
-    const collections = await mongoose.connection.db?.collections();
-    if (collections) {
-      for (const collection of collections) {
-        await collection.drop().catch(() => {});
-      }
-    }
-
     const invoiceRepository = new MongoInvoiceRepository();
     const paymentRepository = new MongoPaymentRepository();
     const solanaPaymentService = new SolanaPaymentService({
@@ -71,6 +64,15 @@ describe('Payment Flow (against local validator)', () => {
       invoiceRepository,
       solanaPaymentService
     );
+  });
+
+  beforeEach(async () => {
+    const collections = await mongoose.connection.db?.collections();
+    if (collections) {
+      for (const collection of collections) {
+        await collection.deleteMany({}).catch(() => {});
+      }
+    }
   });
 
   afterAll(async () => {

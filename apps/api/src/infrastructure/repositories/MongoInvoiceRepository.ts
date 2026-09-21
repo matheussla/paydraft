@@ -70,6 +70,11 @@ export class MongoInvoiceRepository implements IInvoiceRepository {
     }
 
     if (invoice.status === 'unpaid' || invoice.status === 'paid') {
+      if (data.status !== undefined && Object.keys(data).length === 1) {
+        invoice.status = data.status;
+        await invoice.save();
+        return invoice.toJSON() as unknown as IInvoice;
+      }
       throw new Error('Cannot update an issued or paid invoice');
     }
 

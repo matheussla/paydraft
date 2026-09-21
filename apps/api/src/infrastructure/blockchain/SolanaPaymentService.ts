@@ -1,4 +1,4 @@
-import { Connection, Keypair, PublicKey, Transaction, sendAndConfirmTransaction } from '@solana/web3.js';
+import { Connection, Keypair, PublicKey, Transaction, TransactionInstruction, sendAndConfirmTransaction } from '@solana/web3.js';
 import { getAssociatedTokenAddress, createTransferInstruction, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 
 export interface IDemoSignerConfig {
@@ -70,6 +70,12 @@ export class SolanaPaymentService {
 
     const transaction = new Transaction();
     
+    const memoInstruction = new TransactionInstruction({
+      keys: [],
+      programId: new PublicKey('MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr'),
+      data: Buffer.from(request.reference, 'utf-8'),
+    });
+
     const transferInstruction = createTransferInstruction(
       clientTokenAccount,
       recipientTokenAccount,
@@ -77,6 +83,7 @@ export class SolanaPaymentService {
       BigInt(request.amount)
     );
 
+    transaction.add(memoInstruction);
     transaction.add(transferInstruction);
 
     const signature = await sendAndConfirmTransaction(

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'vitest';
 import mongoose from 'mongoose';
 import { Connection } from '@solana/web3.js';
 import { InvoiceService } from '../application/services/InvoiceService.js';
@@ -51,13 +51,6 @@ describe('Payment Reconciliation', () => {
 
     await mongoose.connect(MONGODB_URL);
 
-    const collections = await mongoose.connection.db?.collections();
-    if (collections) {
-      for (const collection of collections) {
-        await collection.drop().catch(() => {});
-      }
-    }
-
     const invoiceRepository = new MongoInvoiceRepository();
     const paymentRepository = new MongoPaymentRepository();
     const solanaPaymentService = new SolanaPaymentService({
@@ -77,6 +70,15 @@ describe('Payment Reconciliation', () => {
       invoiceRepository,
       solanaPaymentService
     );
+  });
+
+  beforeEach(async () => {
+    const collections = await mongoose.connection.db?.collections();
+    if (collections) {
+      for (const collection of collections) {
+        await collection.deleteMany({}).catch(() => {});
+      }
+    }
   });
 
   afterAll(async () => {
