@@ -1,114 +1,10 @@
 # Paydraft
 
-Local-only invoicing application with Demo USDC on a local Solana validator for payment verification. Built with pnpm workspaces.
+**⚠️ Local Demo Only – No Monetary Value**
 
-**⚠️ Local Demo Only**: Runs entirely on your machine with a local Solana validator. Demo USDC tokens are mock SPL tokens with **no monetary value**.
+Local-only invoicing application with Demo USDC payments on a local Solana validator. All operations run entirely on your machine. Demo USDC tokens are mock SPL tokens with **no monetary value**.
 
-## Objective
-
-Create and manage invoices locally, then accept payments in Demo USDC (mock SPL token) on a local Solana validator. The workflow:
-
-1. **Create Invoice** - Generate invoice with customer details and line items
-2. **Pay** - Backend demo-signs transaction with local keypairs to simulate payment
-3. **Verify** - Detect and verify payment on local Solana validator
-4. **Receipt** - Generate receipt and mark invoice as paid
-
-**Important**: This is a **local demo environment only**. Demo USDC tokens are mock SPL tokens with **no monetary value**. All operations run on a local Solana validator on your machine, not on devnet or mainnet.
-
-## Current Status
-
-**Skeleton only** - Clean architecture monorepo scaffold is in place. Business logic (invoices, payments, Solana integration, MongoDB) will be added in future iterations.
-
-### What's Built Today
-
-- ✅ Monorepo structure with pnpm workspaces
-- ✅ React + Vite + TypeScript + Tailwind frontend (stub)
-- ✅ Express + TypeScript API with clean architecture layers (stubs)
-- ✅ Shared types package
-- ✅ TypeScript project references
-- ✅ Build tooling and development scripts
-
-### What's Coming Later
-
-- ❌ Invoice CRUD (MongoDB + Mongoose)
-- ❌ Customer management
-- ✅ Local Solana validator integration (SPL Token, demo keypairs) - **Setup scripts available**
-- ❌ Demo USDC payment detection
-- ❌ Payment verification logic
-- ❌ PDF invoice/receipt generation
-- ❌ Local data persistence
-
-## Architecture
-
-This is a monorepo using pnpm workspaces with clean architecture principles.
-
-### Project Structure
-
-```
-paydraft/
-├── apps/                 pnpm workspaces
-│   ├── web/              React + Vite + TypeScript + Tailwind
-│   │   ├── src/
-│   │   │   ├── core/     App setup and routing
-│   │   │   ├── features/ Feature modules (isolated, self-contained)
-│   │   │   └── shared/   Reusable UI components, hooks, utilities
-│   │   └── ...
-│   └── api/              Express + TypeScript backend
-│       ├── src/
-│       │   ├── domain/        Business logic and entities
-│       │   ├── application/   Use cases and services
-│       │   ├── infrastructure/ External concerns (DB, Solana RPC)
-│       │   └── interfaces/     HTTP controllers and routes
-│       └── ...
-├── packages/             pnpm workspaces
-│   └── shared/           Shared types, schemas, and API contracts
-├── scripts/              pnpm workspace (dev utility scripts)
-│   └── src/
-│       ├── setup/        Environment setup scripts
-│       ├── seed/         Database seeding
-│       └── reset/        Development reset
-└── ...
-```
-
-### Clean Architecture Layers (API)
-
-The API follows dependency inversion with four layers:
-
-1. **Domain** - Core business logic, entities, value objects, and interfaces. No external dependencies.
-2. **Application** - Use cases and application services. Depends on domain only.
-3. **Infrastructure** - External integrations (MongoDB, Solana RPC, file system). Implements domain interfaces.
-4. **Interfaces** - HTTP controllers and routes. Entry point for requests.
-
-**Dependency Rule**: Outer layers depend inward. Domain is completely independent.
-
-### Frontend Architecture
-
-Feature-based organization with clear boundaries:
-
-- **Core** - Application setup, routing, global providers
-- **Features** - Self-contained modules (future: invoices, customers, payments)
-- **Shared** - Reusable components, hooks, and utilities
-
-## Stack
-
-### Current
-
-- **Frontend**: React 18, Vite 6, TypeScript 5, Tailwind CSS 3
-- **Backend**: Node.js, Express 4, TypeScript 5
-- **Tooling**: pnpm workspaces, TypeScript project references
-- **Architecture**: Clean architecture, SOLID principles, feature-based modules
-
-### Later (Not Yet Implemented)
-
-- **Database**: MongoDB with Mongoose ODM
-- **Blockchain**: Solana Web3.js, SPL Token SDK for local validator
-- **Demo Signing**: Backend demo-signing with local Solana keypairs (no browser wallet)
-- **PDF**: Invoice/receipt generation library
-- **Validation**: Zod or similar schema validation
-
-All Solana operations will run on a **local Solana validator** with **Demo USDC** (mock SPL token, no monetary value). No browser wallets or external networks.
-
-## Setup
+## Quick Start
 
 ### Prerequisites
 
@@ -117,92 +13,299 @@ All Solana operations will run on a **local Solana validator** with **Demo USDC*
 - Docker and Docker Compose (for MongoDB)
 - Solana CLI (for local validator)
 
-### Installation
+### Setup and Run
 
-Install all workspace dependencies:
+1. **Install dependencies:**
 
 ```bash
 pnpm install
 ```
 
-### Infrastructure Setup
-
-This application requires MongoDB and a local Solana validator to run.
-
-**1. Start MongoDB:**
+2. **Start MongoDB (loopback only):**
 
 ```bash
 docker compose up -d
 ```
 
-MongoDB will be available at `127.0.0.1:27017` (loopback only).
+MongoDB runs on `127.0.0.1:27017` (not accessible from other machines).
 
-**2. Start local Solana validator** (in a separate terminal):
+3. **Start local Solana validator** (separate terminal):
 
 ```bash
 solana-test-validator
 ```
 
-Keep this running. The validator runs on `http://127.0.0.1:8899`.
+Keep this running. Validator runs on `http://127.0.0.1:8899`.
 
-**3. Generate Solana keypairs:**
+4. **Initialize Solana environment:**
 
 ```bash
-pnpm solana:keypairs
+pnpm solana:init
 ```
 
-This creates `.solana/keypairs/freelancer.json` and `.solana/keypairs/client.json` (gitignored).
+Creates Demo USDC mint, generates keypairs, airdrops SOL, mints 1,000,000 Demo USDC to client.
 
-**4. Initialize Solana environment:**
+5. **Verify infrastructure:**
+
+```bash
+pnpm setup
+```
+
+Checks MongoDB, Solana validator, and config readiness.
+
+6. **Seed sample data:**
+
+```bash
+pnpm seed
+```
+
+Creates unpaid sample invoice totaling **800 Demo USDC** (800,000,000 integer units).
+
+7. **Start API server:**
+
+```bash
+pnpm dev:api
+```
+
+API runs on `http://localhost:3001`.
+
+8. **Start web frontend** (new terminal):
+
+```bash
+pnpm dev:web
+```
+
+Web app runs on `http://localhost:5173`.
+
+### Reset Environment
+
+To clear database and re-seed:
+
+```bash
+pnpm reset
+```
+
+## Demo Payment Flow
+
+This application demonstrates a local-only invoice payment workflow:
+
+1. **Create Invoice** - Generate invoice with customer details and line items (total: **800 Demo USDC** sample)
+2. **Issue Invoice** - Backend stores invoice in local MongoDB and generates payment link
+3. **Demo Pay** - Demo payment flow (no browser wallet required) where backend signs with local keypairs
+4. **Verify** - Backend detects payment on local Solana validator, verifies amount matches invoice
+5. **Receipt** - Generate receipt and mark invoice as paid in local database
+
+**⚠️ Important Notes:**
+- Sample invoice totals **800 Demo USDC** (800,000,000 integer units with 6 decimals)
+- Demo USDC tokens have **no monetary value** - they are mock SPL tokens for local testing only
+- All operations run on a **local Solana validator** on your machine
+- **Local-only environment** - not connected to devnet or mainnet
+
+## Architecture
+
+Modular monorepo with clean architecture principles, built on pnpm workspaces.
+
+### Project Structure
+
+```
+paydraft/
+├── apps/                 # pnpm workspaces
+│   ├── web/              # React + Vite + TypeScript + Tailwind
+│   │   ├── src/
+│   │   │   ├── core/     # App setup and routing
+│   │   │   ├── features/ # Feature modules (isolated, self-contained)
+│   │   │   └── shared/   # Reusable UI components, hooks, utilities
+│   │   └── ...
+│   └── api/              # Express + TypeScript backend
+│       ├── src/
+│       │   ├── domain/        # Business logic and entities
+│       │   ├── application/   # Use cases and services
+│       │   ├── infrastructure/ # External concerns (DB, Solana RPC)
+│       │   └── interfaces/     # HTTP controllers and routes
+│       └── ...
+├── packages/             # pnpm workspaces
+│   └── shared/           # Shared types, schemas, and API contracts
+├── scripts/              # pnpm workspace (dev utility scripts)
+│   └── src/
+│       ├── setup/        # Environment setup scripts
+│       ├── seed/         # Database seeding
+│       └── reset/        # Development reset
+└── ...
+```
+
+### Clean Architecture Layers (Backend API)
+
+The API follows clean architecture with strict dependency inversion:
+
+**1. Domain Layer**
+- Core business logic, entities, value objects, and interfaces
+- Pure TypeScript with no external dependencies
+- Defines contracts (interfaces) for infrastructure concerns
+- Independent of frameworks, databases, or external services
+
+**2. Application Layer**
+- Use cases and application services
+- Orchestrates domain logic
+- Depends on domain layer only
+- Framework-agnostic business workflows
+
+**3. Infrastructure Layer**
+- External integrations: MongoDB, Solana RPC, file system
+- Implements domain interfaces
+- Concrete implementations of repositories and external services
+- Contains framework-specific code
+
+**4. Interfaces Layer**
+- HTTP controllers and routes (Express)
+- Entry point for external requests
+- Maps HTTP to application use cases
+- Handles serialization and validation
+
+**Dependency Rule:** Dependencies point inward. Domain has zero dependencies. Outer layers depend on inner layers, never the reverse.
+
+### Frontend Architecture
+
+Feature-based organization with clear module boundaries:
+
+- **Core** - Application setup, routing, global providers, configuration
+- **Features** - Self-contained feature modules (invoices, payments, receipts)
+- **Shared** - Reusable UI components, hooks, utilities, and types
+
+Each feature is isolated and communicates via defined contracts in the shared package.
+
+## Technology Stack
+
+**Frontend**
+- React 18, Vite 6, TypeScript 5
+- Tailwind CSS 3 for styling
+
+**Backend**
+- Node.js, Express 4, TypeScript 5
+- MongoDB with Mongoose ODM
+- Solana Web3.js, SPL Token SDK for local validator integration
+
+**Blockchain**
+- Local Solana validator (solana-test-validator)
+- Demo USDC: Mock SPL token (6 decimals, no monetary value)
+- Backend demo-signing with local keypairs (no browser wallet required)
+
+**Tooling**
+- pnpm workspaces (monorepo)
+- TypeScript project references
+- Vitest (testing)
+- Docker Compose (MongoDB)
+
+**Architecture Principles**
+- Clean architecture with dependency inversion
+- SOLID principles
+- Feature-based modular organization
+- Composition over inheritance
+
+## Test Results
+
+Test suite validates core business logic: money arithmetic, payment flow, concurrency handling, and reconciliation.
+
+**Status:** ✅ All 29 tests passing
+
+Test coverage at commit `06631d0ad4f10273569e7cfa9b2a7de4b4098612` (INV-015):
+
+- **Money Math** (11 tests): BigInt integer unit arithmetic, precision, edge cases
+- **Payment Flow** (9 tests): Invoice creation, payment detection, amount verification, status updates
+- **Concurrency** (5 tests): Concurrent payment handling, race conditions, duplicate detection
+- **Reconciliation** (4 tests): Payment matching, status synchronization, error recovery
+
+**Test Environment:**
+- Local MongoDB on `127.0.0.1:27017` (loopback)
+- Local Solana validator on `http://127.0.0.1:8899`
+- Vitest with isolated test database
+
+**Run Tests:**
+
+```bash
+pnpm test
+```
+
+All tests execute against local infrastructure only. No external networks or services required.
+
+## Detailed Setup Instructions
+
+### 1. Install Dependencies
+
+```bash
+pnpm install
+```
+
+Installs all workspace dependencies using pnpm workspaces.
+
+### 2. Start MongoDB (Loopback Only)
+
+```bash
+docker compose up -d
+```
+
+MongoDB runs on `127.0.0.1:27017` (loopback interface only - not accessible from other machines).
+
+Connection string: `mongodb://paydraft:paydraft_dev_password@127.0.0.1:27017/paydraft?authSource=admin`
+
+### 3. Start Local Solana Validator
+
+In a separate terminal:
+
+```bash
+solana-test-validator
+```
+
+**Keep this terminal running.** The validator runs on `http://127.0.0.1:8899`.
+
+### 4. Initialize Solana Environment
 
 ```bash
 pnpm solana:init
 ```
 
 This script:
-- Airdrops SOL to freelancer and client accounts
-- Creates the Demo USDC SPL token (6 decimals)
-- Creates token accounts for both parties
-- Mints 1,000,000 Demo USDC to the client
+- Generates freelancer and client keypairs (`.solana/keypairs/*.json`, gitignored)
+- Airdrops SOL to both accounts
+- Creates Demo USDC SPL token mint (6 decimals)
+- Creates token accounts for freelancer and client
+- Mints 1,000,000 Demo USDC to client account
 - Saves configuration to `.solana/config.json`
 
-**5. Check infrastructure readiness:**
+### 5. Verify Infrastructure
 
 ```bash
 pnpm setup
 ```
 
-This validates that MongoDB (loopback), local Solana validator, and Solana config are ready.
+Validates that MongoDB, local Solana validator, and Solana config are ready.
 
-**6. Seed the database with sample data:**
-
-```bash
-pnpm seed
-```
-
-This creates an unpaid sample invoice totaling **800 Demo USDC** (integer unit: 800000000) for local testing.
-
-**Note**: If you need to start fresh, run `pnpm reset` to clear the database and re-seed.
-
-### Development Commands
-
-**Check infrastructure:**
-
-```bash
-pnpm setup
-```
-
-Verifies MongoDB connection, Solana validator, and config.
-
-**Seed database:**
+### 6. Seed Sample Data
 
 ```bash
 pnpm seed
 ```
 
-Creates sample unpaid invoice (800 Demo USDC).
+Creates unpaid sample invoice totaling **800 Demo USDC** (800,000,000 integer units with 6 decimals).
 
-**Reset database:**
+### 7. Start Development Servers
+
+**API Server:**
+
+```bash
+pnpm dev:api
+```
+
+Runs on `http://localhost:3001`. Health check: `/health`
+
+**Web Frontend** (new terminal):
+
+```bash
+pnpm dev:web
+```
+
+Runs on `http://localhost:5173`.
+
+### Reset Database
 
 ```bash
 pnpm reset
@@ -210,19 +313,36 @@ pnpm reset
 
 Drops all MongoDB collections and re-seeds with sample data. Safe to run multiple times.
 
+## Development Commands
+
+**Type checking:**
+
+```bash
+pnpm type-check
+```
+
+Runs TypeScript type checking across all workspaces.
+
+**Build:**
+
+```bash
+pnpm build:api
+pnpm build:web
+```
+
+Builds API and web applications for production.
+
 **Check Solana health:**
 
 ```bash
 pnpm solana:health
 ```
 
-Validates local validator and Demo USDC mint.
+Validates local validator and Demo USDC mint status.
 
-### Local Solana Validator Setup
+## Solana CLI Installation
 
-This project requires a local Solana validator for Demo USDC payments. Follow these steps:
-
-**1. Install Solana CLI** (if not already installed):
+If you don't have Solana CLI installed:
 
 ```bash
 sh -c "$(curl -sSfL https://release.solana.com/stable/install)"
@@ -234,115 +354,27 @@ Verify installation:
 solana --version
 ```
 
-**2. Generate keypairs** (freelancer and client):
+## MongoDB Management
 
-```bash
-pnpm solana:keypairs
-```
-
-This creates `.solana/keypairs/freelancer.json` and `.solana/keypairs/client.json` (gitignored).
-
-**3. Start the local validator**:
-
-```bash
-solana-test-validator
-```
-
-Keep this running in a separate terminal. The validator runs on `http://127.0.0.1:8899`.
-
-**4. Initialize the Solana environment**:
-
-```bash
-pnpm solana:init
-```
-
-This script:
-- Airdrops SOL to freelancer and client accounts
-- Creates the Demo USDC SPL token (6 decimals)
-- Creates token accounts for both parties
-- Mints 1,000,000 Demo USDC to the client
-- Saves configuration to `.solana/config.json`
-
-**5. Check environment health** (optional):
-
-```bash
-pnpm solana:health
-```
-
-This checks if the validator is running and the Demo USDC mint exists. If the validator is reset, you'll see a warning and need to run `pnpm solana:init` again.
-
-**⚠️ Important**: Demo USDC tokens are mock SPL tokens with **no monetary value**. All operations run on your local validator.
-
-### MongoDB Setup
-
-Start MongoDB using Docker Compose (binds to 127.0.0.1 only):
+**Start MongoDB:**
 
 ```bash
 docker compose up -d
 ```
 
-Stop MongoDB:
+**Stop MongoDB:**
 
 ```bash
 docker compose down
 ```
 
-Stop MongoDB and remove volumes:
+**Stop and remove volumes:**
 
 ```bash
 docker compose down -v
 ```
 
-MongoDB runs on `mongodb://paydraft:paydraft_dev_password@127.0.0.1:27017/paydraft?authSource=admin` (loopback only, not accessible from other machines).
-
-### Type Checking
-
-Run TypeScript type checking across all workspaces:
-
-```bash
-pnpm type-check
-```
-
-### Building
-
-Build all packages:
-
-```bash
-pnpm build:api
-pnpm build:web
-```
-
-### Running the Application
-
-**1. Ensure infrastructure is ready:**
-
-```bash
-pnpm setup
-```
-
-This checks MongoDB, Solana validator, and configuration.
-
-**2. Start the API server:**
-
-```bash
-pnpm dev:api
-```
-
-The API starts at `http://localhost:3001` with health check at `/health`.
-
-**3. Start the web frontend** (in a new terminal):
-
-```bash
-pnpm dev:web
-```
-
-The web app starts at `http://localhost:5173`.
-
-**4. Open the sample invoice:**
-
-After running `pnpm seed`, you'll see a payment URL in the output. Open it in your browser to test the payment flow.
-
-**Note**: Keep MongoDB and the Solana validator running while developing.
+MongoDB binds to `127.0.0.1:27017` (loopback only).
 
 ## Development Guidelines
 
@@ -359,7 +391,7 @@ After running `pnpm seed`, you'll see a payment URL in the output. Open it in yo
 - Workspace packages (`apps/*`, `packages/*`, `scripts`) are isolated
 - No circular dependencies between workspaces
 - API contracts live in `packages/shared` (single source of truth)
-- Features should be self-contained with minimal coupling
+- Features are self-contained with minimal coupling
 
 ### Composition Over Inheritance
 
@@ -367,16 +399,17 @@ Prefer composition and dependency injection. Services receive dependencies throu
 
 ### Local-First Architecture
 
-All data is stored locally. Operations are designed for offline-first use. Solana integration runs on a local validator for payment verification only, not primary data storage. No external networks or browser wallets.
+All data is stored locally. Operations are designed for offline-first use. Solana integration runs on a local validator for payment verification only. No external networks or browser wallets.
 
-## Future Roadmap
+## Git Policy
 
-1. **Invoice Management** - CRUD operations, MongoDB persistence
-2. **Customer Management** - Store customer details locally
-3. **Solana Integration** - Local validator setup, Demo USDC mock token, backend demo-signing
-4. **Payment Verification** - Verify payments on local Solana validator
-5. **PDF Generation** - Export invoices and receipts
-6. **Local Data Sync** - Robust local storage with backup
+This repository uses a **single-branch workflow** (main only).
+
+- All commits push directly to `main`
+- No pull requests
+- All commits authored by Matheus only
+
+No external collaboration workflow. This is a personal project maintained exclusively by Matheus.
 
 ## License
 
