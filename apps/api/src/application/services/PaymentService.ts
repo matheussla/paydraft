@@ -12,16 +12,6 @@ export class PaymentService implements IPaymentService {
   ) {}
 
   async initiatePayment(invoiceId: string): Promise<IPayment> {
-    const invoice = await this.invoiceRepository.findById(invoiceId);
-    
-    if (!invoice) {
-      throw new Error('Invoice not found');
-    }
-
-    if (invoice.status !== 'unpaid') {
-      throw new Error('Invoice must be in unpaid status to accept payment');
-    }
-
     const existingPayments = await this.paymentRepository.findByInvoiceId(invoiceId);
     const confirmedPayment = existingPayments.find(p => p.status === 'confirmed');
     
@@ -34,51 +24,78 @@ export class PaymentService implements IPaymentService {
       throw new Error('Payment already in flight');
     }
 
-    const solanaConfigPath = process.env.SOLANA_CONFIG_PATH || '.solana/config.json';
-    const fs = await import('fs');
-    const solanaConfig = JSON.parse(fs.readFileSync(solanaConfigPath, 'utf-8'));
-
-    const paymentResult = await this.solanaPaymentService.createPayment({
-      recipientAddress: invoice.freelancerWalletAddress,
-      amount: invoice.total,
-      mintAddress: solanaConfig.demoUsdcMint,
-      reference: invoice.paymentId || invoiceId,
-    });
-
-    const verification = await this.solanaPaymentService.verifyPayment(
-      paymentResult.signature,
-      invoice.freelancerWalletAddress,
-      invoice.total,
-      solanaConfig.demoUsdcMint
-    );
-
-    if (!verification.valid) {
-      console.error('Payment verification failed:', verification.mismatch);
-      throw new Error('Payment mismatch detected');
+    const invoice = await this.invoiceRepository.findById(invoiceId);
+    
+    if (!invoice) {
+      throw new Error('Invoice not found');
     }
 
-    const payment = await this.paymentRepository.create({
+    if (invoice.status !== 'unpaid') {
+      throw new Error('Invoice must be in unpaid status to accept payment');
+    }
+
+    const updatedInvoice = await this.invoiceRepository.updateStatusAtomic(
       invoiceId,
-      amount: invoice.total,
-      currency: invoice.currency,
-      fromWalletAddress: solanaConfig.clientPublicKey,
-      toWalletAddress: invoice.freelancerWalletAddress,
-    });
-
-    const updatedPayment = await this.paymentRepository.updateWithSignature(
-      payment.id,
-      paymentResult.signature,
-      paymentResult.blockTime,
-      1
+      'unpaid',
+      'pending'
     );
 
-    if (!updatedPayment) {
-      throw new Error('Failed to update payment confirmation');
+    if (!updatedInvoice) {
+      throw new Error('Invoice no longer available for payment (concurrent modification)');
     }
 
-    await this.invoiceRepository.update(invoiceId, { status: 'paid' });
+    try {
+      const solanaConfigPath = process.env.SOLANA_CONFIG_PATH || '.solana/config.json';
+      const fs = await import('fs');
+      const solanaConfig = JSON.parse(fs.readFileSync(solanaConfigPath, 'utf-8'));
 
-    return updatedPayment;
+      const paymentResult = await this.solanaPaymentService.createPayment({
+        recipientAddress: invoice.freelancerWalletAddress,
+        amount: invoice.total,
+        mintAddress: solanaConfig.demoUsdcMint,
+        reference: invoice.paymentId || invoiceId,
+      });
+
+      const verification = await this.solanaPaymentService.verifyPayment(
+        paymentResult.signature,
+        invoice.freelancerWalletAddress,
+        invoice.total,
+        solanaConfig.demoUsdcMint
+      );
+
+      if (!verification.valid) {
+        console.error('Payment verification failed:', verification.mismatch);
+        await this.invoiceRepository.updateStatusAtomic(invoiceId, 'pending', 'unpaid');
+        throw new Error('Payment mismatch detected');
+      }
+
+      const payment = await this.paymentRepository.create({
+        invoiceId,
+        amount: invoice.total,
+        currency: invoice.currency,
+        fromWalletAddress: solanaConfig.clientPublicKey,
+        toWalletAddress: invoice.freelancerWalletAddress,
+      });
+
+      const updatedPayment = await this.paymentRepository.updateWithSignature(
+        payment.id,
+        paymentResult.signature,
+        paymentResult.blockTime,
+        1
+      );
+
+      if (!updatedPayment) {
+        await this.invoiceRepository.updateStatusAtomic(invoiceId, 'pending', 'unpaid');
+        throw new Error('Failed to update payment confirmation');
+      }
+
+      await this.invoiceRepository.updateStatusAtomic(invoiceId, 'pending', 'paid');
+
+      return updatedPayment;
+    } catch (error) {
+      await this.invoiceRepository.updateStatusAtomic(invoiceId, 'pending', 'unpaid');
+      throw error;
+    }
   }
 
   async verifyPayment(signature: string): Promise<IPayment | null> {

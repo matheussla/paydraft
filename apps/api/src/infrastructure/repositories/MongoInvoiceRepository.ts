@@ -54,8 +54,12 @@ export class MongoInvoiceRepository implements IInvoiceRepository {
   }
 
   async findById(id: string): Promise<IInvoice | null> {
-    const invoice = await InvoiceModel.findById(id);
-    return invoice ? (invoice.toJSON() as unknown as IInvoice) : null;
+    try {
+      const invoice = await InvoiceModel.findById(id);
+      return invoice ? (invoice.toJSON() as unknown as IInvoice) : null;
+    } catch (error) {
+      return null;
+    }
   }
 
   async findAll(): Promise<IInvoice[]> {
@@ -64,44 +68,53 @@ export class MongoInvoiceRepository implements IInvoiceRepository {
   }
 
   async update(id: string, data: IUpdateInvoiceRequest): Promise<IInvoice | null> {
-    const invoice = await InvoiceModel.findById(id);
-    if (!invoice) {
+    try {
+      const invoice = await InvoiceModel.findById(id);
+      if (!invoice) {
+        return null;
+      }
+
+      const isStatusOnlyUpdate = data.status !== undefined && 
+        data.clientName === undefined &&
+        data.clientEmail === undefined &&
+        data.clientWalletAddress === undefined &&
+        data.dueDate === undefined &&
+        data.notes === undefined &&
+        data.lineItems === undefined;
+
+      if (invoice.status === 'unpaid' || invoice.status === 'paid') {
+        if (isStatusOnlyUpdate) {
+          invoice.status = data.status!;
+          await invoice.save();
+          return invoice.toJSON() as unknown as IInvoice;
+        }
+        throw new Error('Cannot update an issued or paid invoice');
+      }
+
+      if (data.clientName !== undefined) invoice.clientName = data.clientName;
+      if (data.clientEmail !== undefined) invoice.clientEmail = data.clientEmail;
+      if (data.clientWalletAddress !== undefined) invoice.clientWalletAddress = data.clientWalletAddress;
+      if (data.dueDate !== undefined) invoice.dueDate = data.dueDate;
+      if (data.notes !== undefined) invoice.notes = data.notes;
+      if (data.status !== undefined) invoice.status = data.status;
+
+      if (data.lineItems) {
+        invoice.lineItems = data.lineItems;
+        const { subtotal, total } = this.calculateSubtotalAndTotal(data.lineItems);
+        invoice.subtotal = subtotal;
+        invoice.total = total;
+      }
+
+      await invoice.save();
+      return invoice.toJSON() as unknown as IInvoice;
+    } catch (error) {
+      if (error instanceof Error && (
+        error.message === 'Cannot update an issued or paid invoice'
+      )) {
+        throw error;
+      }
       return null;
     }
-
-    const isStatusOnlyUpdate = data.status !== undefined && 
-      data.clientName === undefined &&
-      data.clientEmail === undefined &&
-      data.clientWalletAddress === undefined &&
-      data.dueDate === undefined &&
-      data.notes === undefined &&
-      data.lineItems === undefined;
-
-    if (invoice.status === 'unpaid' || invoice.status === 'paid') {
-      if (isStatusOnlyUpdate) {
-        invoice.status = data.status!;
-        await invoice.save();
-        return invoice.toJSON() as unknown as IInvoice;
-      }
-      throw new Error('Cannot update an issued or paid invoice');
-    }
-
-    if (data.clientName !== undefined) invoice.clientName = data.clientName;
-    if (data.clientEmail !== undefined) invoice.clientEmail = data.clientEmail;
-    if (data.clientWalletAddress !== undefined) invoice.clientWalletAddress = data.clientWalletAddress;
-    if (data.dueDate !== undefined) invoice.dueDate = data.dueDate;
-    if (data.notes !== undefined) invoice.notes = data.notes;
-    if (data.status !== undefined) invoice.status = data.status;
-
-    if (data.lineItems) {
-      invoice.lineItems = data.lineItems;
-      const { subtotal, total } = this.calculateSubtotalAndTotal(data.lineItems);
-      invoice.subtotal = subtotal;
-      invoice.total = total;
-    }
-
-    await invoice.save();
-    return invoice.toJSON() as unknown as IInvoice;
   }
 
   async delete(id: string): Promise<boolean> {
@@ -115,19 +128,39 @@ export class MongoInvoiceRepository implements IInvoiceRepository {
   }
 
   async issue(id: string): Promise<IInvoice | null> {
-    const invoice = await InvoiceModel.findById(id);
-    if (!invoice) {
+    try {
+      const invoice = await InvoiceModel.findById(id);
+      if (!invoice) {
+        return null;
+      }
+
+      if (invoice.status !== 'draft') {
+        throw new Error('Only draft invoices can be issued');
+      }
+
+      invoice.status = 'unpaid';
+      invoice.issuedDate = new Date().toISOString();
+
+      await invoice.save();
+      return invoice.toJSON() as unknown as IInvoice;
+    } catch (error) {
+      if (error instanceof Error && error.message === 'Only draft invoices can be issued') {
+        throw error;
+      }
       return null;
     }
+  }
 
-    if (invoice.status !== 'draft') {
-      throw new Error('Only draft invoices can be issued');
+  async updateStatusAtomic(id: string, fromStatus: string, toStatus: string): Promise<IInvoice | null> {
+    try {
+      const invoice = await InvoiceModel.findOneAndUpdate(
+        { _id: id, status: fromStatus },
+        { status: toStatus },
+        { new: true }
+      );
+      return invoice ? (invoice.toJSON() as unknown as IInvoice) : null;
+    } catch (error) {
+      return null;
     }
-
-    invoice.status = 'unpaid';
-    invoice.issuedDate = new Date().toISOString();
-
-    await invoice.save();
-    return invoice.toJSON() as unknown as IInvoice;
   }
 }

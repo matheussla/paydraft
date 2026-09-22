@@ -8,4 +8,5 @@ export interface IInvoiceRepository {
   delete(id: string): Promise<boolean>;
   findByInvoiceNumber(invoiceNumber: string): Promise<IInvoice | null>;
   issue(id: string): Promise<IInvoice | null>;
+  updateStatusAtomic(id: string, fromStatus: string, toStatus: string): Promise<IInvoice | null>;
 }
