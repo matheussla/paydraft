@@ -4,6 +4,8 @@
 
 Local-only invoicing application with Demo USDC payments on a local Solana validator. All operations run entirely on your machine. Demo USDC tokens are mock SPL tokens with **no monetary value**.
 
+**Returning to this project?** Start with [`docs/PROJECT_CONTEXT.md`](docs/PROJECT_CONTEXT.md) — status, decisions, links, and a resume checklist. This README covers setup, architecture, and how to run.
+
 ## Quick Start
 
 ### Prerequisites
